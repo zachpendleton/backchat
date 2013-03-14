@@ -1,4 +1,4 @@
-require "backchat/version"
+require 'backchat/version'
 
 module Backchat
   # Your code goes here...
