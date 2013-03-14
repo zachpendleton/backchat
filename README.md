@@ -25,31 +25,37 @@ Or install it yourself as:
 You'll need to require all of the Smack libraries you need inside your app with
 the standard JRuby syntax:
 
-    java_import 'org.jivesoftware.smacmx.muc.MultiUserChat'
-    java_import 'org.jivesoftware.smacmx.Form'
-    ...
+```ruby
+java_import 'org.jivesoftware.smacmx.muc.MultiUserChat'
+java_import 'org.jivesoftware.smacmx.Form'
+...
+```
 
 But you'll get connection pooling for free. Yay! Inside your app, configure
 Backchat's pool in some kind of initializer:
 
-    Backchat::ConnectionPool.configure do
-      host 'jabber.org'
-      username 'admin'
-      password 's3cr3t$@ren0fun'
-      pool_size: 5 # five connections is the default
-    end
+```ruby
+Backchat::ConnectionPool.configure do
+  host 'jabber.org'
+  username 'admin'
+  password 's3cr3t$@ren0fun'
+  pool_size: 5 # five connections is the default
+end
 
-    # configure also accepts a hash
-    Backchat::ConnectionPool.configure(host: 'jabber.org', username: 'admin',
-      password: 's3cr3t$@ren0fun', pool_size: 5)
+# configure also accepts a hash
+Backchat::ConnectionPool.configure(host: 'jabber.org', username: 'admin',
+  password: 's3cr3t$@ren0fun', pool_size: 5)
+```
 
 Once Backchat is configured, you can use the connection pool like magic:
 
-    # connection_pool takes a block and passes it an XMPPConnection.
-    Backchat.connection_pool do |conn|
-      chat = MultiUserChat.new(conn, 'my-room@solonely.localhost')
-      chat.create('me')
-    end
+```ruby
+# connection_pool takes a block and passes it an XMPPConnection.
+Backchat.connection_pool do |conn|
+  chat = MultiUserChat.new(conn, 'my-room@solonely.localhost')
+  chat.create('me')
+end
+```
 
 The connection pool is created on the first call to `Backchat#connection_pool`,
 provides authenticated connections, and blocks until a connection is available.
