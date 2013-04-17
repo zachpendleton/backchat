@@ -19,7 +19,8 @@ class BackchatConnectionPoolTest < MiniTest::Unit::TestCase
     assert_equal Backchat::ConnectionPool.settings, { host: 'example.com',
                                                       username: 'don_draper',
                                                       password: 'secret',
-                                                      pool_size: 1 }
+                                                      pool_size: 1,
+                                                      persistent: true }
   end
 
   def test_configure_accepts_a_hash
@@ -29,7 +30,8 @@ class BackchatConnectionPoolTest < MiniTest::Unit::TestCase
     assert_equal Backchat::ConnectionPool.settings, { host: 'example.com',
                                                       username: 'don_draper',
                                                       password: 'secret',
-                                                      pool_size: 1 }
+                                                      pool_size: 1,
+                                                      persistent: true }
   end
 
   def test_configure_allows_partial_settings_in_a_block
@@ -50,8 +52,8 @@ class BackchatConnectionPoolTest < MiniTest::Unit::TestCase
     assert_includes @pool.instance_variables, :@queue
   end
 
-  def test_queue_is_an_array_blocking_queue
-    assert_instance_of ArrayBlockingQueue, @pool.instance_variable_get(:@queue)
+  def test_queue_is_a_queue
+    assert_instance_of SizedQueue, @pool.instance_variable_get(:@queue)
   end
 
   def test_initialize_fills_the_pool_with_connections

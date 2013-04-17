@@ -6,33 +6,38 @@ module Backchat
       host: 'localhost',
       username: 'admin',
       password: 'password',
-      pool_size: 5 }
+      pool_size: 5,
+      persistent: true }
 
     @settings = DEFAULT_SETTINGS
 
     def initialize(count = self.class.settings[:pool_size])
-      @queue = fill(ArrayBlockingQueue.new(count))
+      @queue = fill(SizedQueue.new(count))
     end
 
-    def each(&block)
-      queue.each(&block)
+    def count
+      queue.length
     end
 
     def take
-      queue.take
+      queue.pop
     end
 
     def add(connection)
-      queue.add(connection)
+      queue.push(connection)
     end
 
     def with_connection
       connection = take
+      connection.connect unless connection.is_connected?
+      connection.login(self.class.settings[:username],
+                       self.class.settings[:password],
+                       "resource_#{connection.connection_id}") unless connection.is_authenticated?
       yield connection
     ensure
+      connection.disconnect unless self.class.settings[:persistent]
       add(connection)
     end
-
 
     class << self
       attr_reader :settings
@@ -58,7 +63,7 @@ module Backchat
       end
 
       private
-      [:host, :username, :password, :pool_size].each do |key|
+      [:host, :username, :password, :pool_size, :persistent].each do |key|
         define_method("#{key}") do |val|
           @settings ||= {}
           @settings[key] = val
@@ -70,13 +75,16 @@ module Backchat
     attr_reader :queue
 
     def fill(queue)
-      while queue.remaining_capacity > 0
+      while queue.length < queue.max
         conn = XMPPConnection.new(self.class.settings[:host])
-        conn.connect
-        conn.login(self.class.settings[:username],
-                   self.class.settings[:password], conn.connection_id)
+        if self.class.settings[:persistent]
+          conn.connect
+          conn.login(self.class.settings[:username],
+                     self.class.settings[:password],
+                     "resource_#{conn.connection_id}")
+        end
 
-        queue.add(conn)
+        queue.push(conn)
       end
 
       queue
